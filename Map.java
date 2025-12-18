@@ -11,6 +11,9 @@ import java.io.Serializable;
 public class Map implements Map2D, Serializable {
 
 	// edit this class below
+
+	private int[][] _map;
+
 	/**
 	 * Constructs a w*h 2D raster map with an init value v.
 	 * 
@@ -42,17 +45,59 @@ public class Map implements Map2D, Serializable {
 
 	@Override
 	public void init(int w, int h, int v) {
+		// edge cases
+		if (w <= 0 || h <= 0)
+			throw new RuntimeException("Map2D init error: wrong dimensions");
 
+		// create new map
+		this._map = new int[w][h];
+
+		// insert v to every 'cell'
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				this._map[i][j] = v;
+			}
+		}
 	}
 
 	@Override
 	public void init(int[][] arr) {
+		// edge cases
+		if (arr == null || arr.length == 0 || arr[0] == null)
+			throw new RuntimeException("Map2D init error: null or empty array");
 
+		// create new map -> width = array length and height = one of the elements in
+		// array length
+		this._map = new int[arr.length][arr[0].length];
+
+		// deep copy array to map
+		for (int i = 0; i < arr.length; i++) {
+			for (int j = 0; j < arr[i].length; j++) {
+				this._map[i][j] = arr[i][j];
+			}
+		}
 	}
 
 	@Override
 	public int[][] getMap() {
-		int[][] ans = null;
+
+		// edge cases
+		if (this._map == null)
+			return null;
+
+		// get length
+		int w = this.getWidth();
+		int h = this.getHeight();
+
+		// create new 2D array
+		int[][] ans = new int[w][h];
+
+		// deep copy map
+		for (int i = 0; i < w; i++) {
+			for (int j = 0; j < h; j++) {
+				ans[i][j] = this._map[i][j];
+			}
+		}
 
 		return ans;
 	}
@@ -61,6 +106,11 @@ public class Map implements Map2D, Serializable {
 	public int getWidth() {
 		int ans = -1;
 
+		if (_map == null || _map.length == 0)
+			ans = 0;
+		else
+			ans = _map.length;
+
 		return ans;
 	}
 
@@ -68,12 +118,23 @@ public class Map implements Map2D, Serializable {
 	public int getHeight() {
 		int ans = -1;
 
+		if (_map == null || _map.length == 0 || _map[0] == null)
+			ans = 0;
+		else
+			ans = _map[0].length;
 		return ans;
 	}
 
 	@Override
 	public int getPixel(int x, int y) {
 		int ans = -1;
+
+		// edge case
+		if (x < 0 || x >= getWidth() || y < 0 || y >= getHeight())
+			throw new RuntimeException("Map2D getPixel error: out of bounds");
+
+		// get pixel
+		ans = _map[x][y];
 
 		return ans;
 	}
@@ -82,22 +143,52 @@ public class Map implements Map2D, Serializable {
 	public int getPixel(Pixel2D p) {
 		int ans = -1;
 
+		// get coordinates
+		int x = p.getX();
+		int y = p.getY();
+
+		// use first getPixel
+		ans = this.getPixel(x, y);
+
 		return ans;
 	}
 
 	@Override
 	public void setPixel(int x, int y, int v) {
-
+		// if coordinates in map set pixel
+		if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight())
+			this._map[x][y] = v;
 	}
 
 	@Override
 	public void setPixel(Pixel2D p, int v) {
+		// edge case
+		if (p == null)
+			throw new RuntimeException("Map2D setPixel error: null pixel");
 
+		// get coordinates
+		int x = p.getX();
+		int y = p.getY();
+
+		// use first setPixel
+		this.setPixel(x, y, v);
 	}
 
 	@Override
 	public boolean isInside(Pixel2D p) {
 		boolean ans = true;
+
+		if (p == null)
+			return false;
+
+		// get coordinates
+		int x = p.getX();
+		int y = p.getY();
+		int w = this.getWidth();
+		int h = this.getHeight();
+
+		if (x < 0 || x >= w || y < 0 || y >= h)
+			ans = false;
 
 		return ans;
 	}
