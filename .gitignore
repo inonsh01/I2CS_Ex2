@@ -1,7 +1,7 @@
 .DS_Store
 
 # Java compiled files
-bin/
+bin
 *.class
 
 # Libraries (optional, depends on project requirements)
