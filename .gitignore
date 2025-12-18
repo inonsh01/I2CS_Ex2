@@ -1,2 +1,11 @@
 .DS_Store
-.vscode
+
+# Java compiled files
+bin/
+*.class
+
+# Libraries (optional, depends on project requirements)
+lib/
+
+# VS Code specific
+.vscode/
