@@ -195,24 +195,92 @@ public class Map implements Map2D, Serializable {
 
 	@Override
 	public boolean sameDimensions(Map2D p) {
+		// edge case
+		if (p == null)
+			return false;
+
 		boolean ans = false;
+
+		if (this.getWidth() == p.getWidth() && this.getHeight() == p.getHeight())
+			ans = true;
 
 		return ans;
 	}
 
 	@Override
 	public void addMap2D(Map2D p) {
+		// edge case
+		if (p == null || !this.sameDimensions(p))
+			return;
 
+		int p1, p2;
+
+		// loop all over the map
+		for (int i = 0; i < this.getWidth(); i++) {
+			for (int j = 0; j < this.getHeight(); j++) {
+
+				// get pixels
+				p1 = this._map[i][j];
+				p2 = p.getPixel(i, j);
+
+				// set the pixel to the sum of them
+				this.setPixel(i, j, p1 + p2);
+			}
+		}
 	}
 
 	@Override
 	public void mul(double scalar) {
 
+		int p1, mulResult;
+
+		// loop all over the map
+		for (int i = 0; i < this.getWidth(); i++) {
+			for (int j = 0; j < this.getHeight(); j++) {
+
+				// get pixel
+				p1 = this._map[i][j];
+
+				// scale and round to the nearest integer
+				mulResult = (int) Math.round(p1 * scalar);
+
+				// set the pixel
+				this.setPixel(i, j, mulResult);
+			}
+		}
 	}
 
 	@Override
 	public void rescale(double sx, double sy) {
+		int oldX, oldY, p;
+		int width = (int) Math.round(this.getWidth() * sx);
+		int height = (int) Math.round(this.getHeight() * sy);
 
+		int[][] newMap = new int[width][height];
+
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+
+				// get x and y relative to the old map
+				oldX = (int) (i / sx);
+				oldY = (int) (j / sy);
+
+				// check if coordinates within bounds (for rounding errors)
+				if (oldX >= getWidth())
+					oldX = getWidth() - 1;
+				if (oldY >= getHeight())
+					oldY = getHeight() - 1;
+
+				// get pixel in the old map
+				p = this.getPixel(oldX, oldY);
+
+				// set to new map;
+				newMap[i][j] = p;
+			}
+		}
+
+		// point to the new map
+		this._map = newMap;
 	}
 
 	@Override
@@ -233,6 +301,27 @@ public class Map implements Map2D, Serializable {
 	@Override
 	public boolean equals(Object ob) {
 		boolean ans = false;
+
+		// if the given object is not of type of Map2D
+		if (!(ob instanceof Map2D))
+			return false;
+
+		// casting Object to Map2D
+		Map2D other = (Map2D) ob;
+
+		// check dimensions first
+		if (this.sameDimensions(other)) {
+
+			// loop all over the map, if one cell in map isn't equals to ob they are not
+			// equals
+			for (int i = 0; i < this.getWidth(); i++) {
+				for (int j = 0; j < this.getHeight(); j++) {
+					if (this.getPixel(i, j) != other.getPixel(i, j))
+						return false;
+				}
+			}
+			ans = true;
+		}
 
 		return ans;
 	}
