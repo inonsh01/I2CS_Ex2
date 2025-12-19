@@ -285,17 +285,85 @@ public class Map implements Map2D, Serializable {
 
 	@Override
 	public void drawCircle(Pixel2D center, double rad, int color) {
+		int centerX = center.getX();
+		int centerY = center.getY();
+		double radSquared = rad * rad;
 
+		// loop all over the map
+		for (int i = 0; i < this.getWidth(); i++) {
+			for (int j = 0; j < this.getHeight(); j++) {
+
+				// distance from center
+				double dx = i - centerX;
+				double dy = j - centerY;
+				double distanceSquared = (dx * dx) + (dy * dy);
+
+				// if pixel is in circle, paint it in color
+				if (distanceSquared <= radSquared) {
+					this.setPixel(i, j, color);
+				}
+			}
+		}
 	}
 
 	@Override
 	public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
+		// edge cases
+		if (p1 == null || p2 == null)
+			return;
 
+		// if its the same pixel just paint it
+		if (p1.equals(p2)) {
+			this.setPixel(p1, color);
+			return;
+		}
+
+		// get variables
+		int x1 = p1.getX();
+		int y1 = p1.getY();
+		int x2 = p2.getX();
+		int y2 = p2.getY();
+
+		// calculate horizontal and vertical distance between two points
+		double dx = x2 - x1;
+		double dy = y2 - y1;
+
+		// the bigger of them
+		double steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+		// increment for each step
+		double incX = dx / steps;
+		double incY = dy / steps;
+
+		double currX = x1;
+		double currY = y1;
+
+		for (int i = 0; i <= steps; i++) {
+			this.setPixel((int) Math.round(currX), (int) Math.round(currY), color);
+
+			currX += incX;
+			currY += incY;
+		}
 	}
 
 	@Override
 	public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
+		// edge cases
+		if (p1 == null || p2 == null)
+			return;
 
+		// find the borders (for paint from top left to the bottom rights)
+		int minX = Math.min(p1.getX(), p2.getX());
+		int maxX = Math.max(p1.getX(), p2.getX());
+		int minY = Math.min(p1.getY(), p2.getY());
+		int maxY = Math.max(p1.getY(), p2.getY());
+
+		// loop all over the rectangle
+		for (int i = minX; i <= maxX; i++) {
+			for (int j = minY; j <= maxY; j++) {
+				this.setPixel(i, j, color);
+			}
+		}
 	}
 
 	@Override
