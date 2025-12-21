@@ -1,5 +1,7 @@
 
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * This class represents a 2D map (int[w][h]) as a "screen" or a raster matrix
@@ -400,7 +402,56 @@ public class Map implements Map2D, Serializable {
 	 * https://en.wikipedia.org/wiki/Flood_fill
 	 */
 	public int fill(Pixel2D xy, int new_v, boolean cyclic) {
-		int ans = -1;
+		int ans = 0;
+
+		// get details
+		int width = getWidth();
+		int height = getHeight();
+		int oldColor = getPixel(xy.getX(), xy.getY());
+
+		// if the color is already the new color, no need to fill
+		if (oldColor == new_v)
+			return ans;
+
+		Queue<Pixel2D> q = new LinkedList<>();
+
+		// for tracking visited pixels
+		boolean[][] visited = new boolean[width][height];
+
+		// add first pixel to queue and to visited list
+		q.add(xy);
+		visited[xy.getX()][xy.getY()] = true;
+
+		// right, left, down, up
+		int[] dx = { 1, -1, 0, 0 };
+		int[] dy = { 0, 0, 1, -1 };
+
+		while (!q.isEmpty()) {
+			// return and remove the head of the queue
+			Pixel2D curr = q.poll();
+
+			// paint with color the current pixel and increment count
+			setPixel(curr.getX(), curr.getY(), new_v);
+			ans++;
+
+			// check the four near neighbors
+			for (int i = 0; i < 4; i++) {
+				Pixel2D next = getNextPixel(curr, dx[i], dy[i], width, height, cyclic);
+
+				if (next != null) {
+					int nx = next.getX();
+					int ny = next.getY();
+
+					// check if the neighbor has the old color and hasn't been visited
+					if (!visited[nx][ny] && getPixel(nx, ny) == oldColor) {
+
+						// add pixel to queue and turn visited to true
+						visited[nx][ny] = true;
+						q.add(next);
+					}
+				}
+			}
+		}
 
 		return ans;
 	}
@@ -413,6 +464,56 @@ public class Map implements Map2D, Serializable {
 	public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
 		Pixel2D[] ans = null; // the result.
 
+		int width = getWidth();
+		int height = getHeight();
+
+		// check if start or end are valid (not obstacles)
+		if (getPixel(p1.getX(), p1.getY()) == obsColor || getPixel(p2.getX(), p2.getY()) == obsColor) {
+			return null;
+		}
+
+		// Special case: start is same as end
+		if (p1.equals(p2)) {
+			return new Pixel2D[] { p1 };
+		}
+
+		Queue<Pixel2D> q = new LinkedList<>();
+
+		// parent[x][y] stores the pixel we came from to reach (x, y)
+		Pixel2D[][] parent = new Pixel2D[width][height];
+
+		q.add(p1);
+		// mark start as visited
+		parent[p1.getX()][p1.getY()] = p1;
+
+		int[] dx = { 1, -1, 0, 0 };
+		int[] dy = { 0, 0, 1, -1 };
+
+		while (!q.isEmpty()) {
+			Pixel2D curr = q.poll();
+
+			// if we reached the target, stop and reconstruct the path
+			if (curr.equals(p2)) {
+				ans = reconstructPath(p1, p2, parent);
+				break;
+			}
+
+			for (int i = 0; i < 4; i++) {
+				Pixel2D next = getNextPixel(curr, dx[i], dy[i], width, height, cyclic);
+
+				if (next != null) {
+					int nx = next.getX();
+					int ny = next.getY();
+
+					// check if the neighbor is not an obstacle and hasn't been visited
+					if (parent[nx][ny] == null && getPixel(nx, ny) != obsColor) {
+						parent[nx][ny] = curr;
+						q.add(next);
+					}
+				}
+			}
+		}
+
 		return ans;
 	}
 
@@ -424,4 +525,59 @@ public class Map implements Map2D, Serializable {
 	}
 	////////////////////// Private Methods ///////////////////////
 
+	/**
+	 * Computes the next neighbor pixel based on the given direction (dx, dy). If
+	 * the map is cyclic, it wraps around the boundaries using modulo. If not
+	 * cyclic, it returns null if the neighbor is outside the map boundaries. *
+	 * 
+	 * @param curr   The current pixel.
+	 * @param dx     The change in x direction.
+	 * @param dy     The change in y direction.
+	 * @param width  The map width.
+	 * @param height The map height.
+	 * @param cyclic Whether the map is cyclic.
+	 * @return A new Pixel2D representing the neighbor, or null if out of bounds.
+	 */
+	private Pixel2D getNextPixel(Pixel2D curr, int dx, int dy, int width, int height, boolean cyclic) {
+
+		// get the next pixel
+		int nx = curr.getX() + dx;
+		int ny = curr.getY() + dy;
+
+		if (cyclic) {
+			nx = (nx + width) % width;
+			ny = (ny + height) % height;
+		}
+		else {
+			// boundary check
+			if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+				return null;
+			}
+		}
+		return new Index2D(nx, ny);
+	}
+
+	/**
+	 * Reconstructs the path from p2 back to p1 using the parent map.
+	 * 
+	 * @return An array of Pixel2D representing the path from start to end.
+	 */
+	private Pixel2D[] reconstructPath(Pixel2D p1, Pixel2D p2, Pixel2D[][] parent) {
+		LinkedList<Pixel2D> pathList = new LinkedList<>();
+		Pixel2D curr = p2;
+
+		// backtrack from end to start
+		while (curr != null && !curr.equals(p1)) {
+
+			// add to the front to keep start-to-end order
+			pathList.addFirst(curr);
+			curr = parent[curr.getX()][curr.getY()];
+		}
+
+		// add the start pixel
+		pathList.addFirst(p1);
+
+		// convert the list to a fixed-size array
+		return pathList.toArray(new Pixel2D[0]);
+	}
 }
