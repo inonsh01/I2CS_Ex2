@@ -13,7 +13,14 @@ import java.awt.Color;
  *
  */
 public class Ex2_GUI {
+
+    /**
+     * This function draws the map on the screen.
+     * 
+     * @param map
+     */
     public static void drawMap(Map2D map) {
+
         // edge case
         if (map == null) {
             System.err.println("Error: Cannot draw a null map.");
@@ -25,6 +32,7 @@ public class Ex2_GUI {
         int height = map.getHeight();
 
         StdDraw.enableDoubleBuffering();
+        StdDraw.clear();
 
         // set scales
         StdDraw.setXscale(-0.5, width - 0.5);
@@ -45,13 +53,19 @@ public class Ex2_GUI {
                 StdDraw.filledSquare(i, j, 0.5);
             }
         }
+
+        // just for me, not really needed
+        drawLines(width, height);
+
         // display the map
         StdDraw.show();
     }
 
     /**
+     * This function load a map from file to Map2D array
+     * 
      * @param mapFileName
-     * @return
+     * @return Map2D Array
      */
     public static Map2D loadMap(String mapFileName) {
         Map2D ans = null;
@@ -89,7 +103,8 @@ public class Ex2_GUI {
     }
 
     /**
-     *
+     * This function save Map2D array to a file
+     * 
      * @param map
      * @param mapFileName
      */
@@ -141,5 +156,32 @@ public class Ex2_GUI {
         Map2D map = loadMap(mapFile);
         drawMap(map);
     }
+
     /// ///////////// Private functions ///////////////
+
+    /**
+     * This function draw grid lines to show pixel boundaries
+     * 
+     * @param width
+     * @param height
+     */
+    private static void drawLines(int width, int height) {
+        StdDraw.setPenColor(Color.LIGHT_GRAY);
+        StdDraw.setPenRadius(0.001);
+
+        // vertical lines
+        for (int i = 0; i <= width; i++) {
+            StdDraw.line(i - 0.5, -0.5, i - 0.5, height - 0.5);
+        }
+
+        // horizontal lines
+        for (int j = 0; j <= height; j++) {
+            StdDraw.line(-0.5, j - 0.5, width - 0.5, j - 0.5);
+        }
+
+        // draw border around the entire map
+        StdDraw.setPenColor(Color.BLACK);
+        StdDraw.setPenRadius(0.005);
+        StdDraw.rectangle((width - 1) / 2.0, (height - 1) / 2.0, width / 2.0, height / 2.0);
+    }
 }
