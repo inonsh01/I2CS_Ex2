@@ -518,8 +518,62 @@ public class Map implements Map2D, Serializable {
 	}
 
 	@Override
+	/**
+	 * Computes a new map with the shortest path distance from the start point to
+	 * each entry in this map. Uses BFS algorithm to compute distances.
+	 * https://en.wikipedia.org/wiki/Breadth-first_search
+	 */
 	public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
 		Map2D ans = null; // the result.
+
+		// get map dimensions
+		int width = getWidth();
+		int height = getHeight();
+
+		// create result map with same dimensions, initialize with -1
+		ans = new Map(width, height, -1);
+
+		// check if start point is an obstacle
+		if (getPixel(start.getX(), start.getY()) == obsColor) {
+			return ans;
+		}
+
+		// BFS queue and visited tracking
+		Queue<Pixel2D> q = new LinkedList<>();
+		boolean[][] visited = new boolean[width][height];
+
+		// start point has distance 0
+		q.add(start);
+		ans.setPixel(start, 0);
+		visited[start.getX()][start.getY()] = true;
+
+		// directions: right, left, down, up
+		int[] dx = { 1, -1, 0, 0 };
+		int[] dy = { 0, 0, 1, -1 };
+
+		while (!q.isEmpty()) {
+			// get current pixel and its distance
+			Pixel2D curr = q.poll();
+			int currDistance = ans.getPixel(curr);
+
+			// check all four neighbors
+			for (int i = 0; i < 4; i++) {
+				Pixel2D next = getNextPixel(curr, dx[i], dy[i], width, height, cyclic);
+
+				if (next != null) {
+					int nx = next.getX();
+					int ny = next.getY();
+
+					// if neighbor is not visited and not an obstacle
+					if (!visited[nx][ny] && getPixel(nx, ny) != obsColor) {
+						// set distance and mark as visited
+						ans.setPixel(nx, ny, currDistance + 1);
+						visited[nx][ny] = true;
+						q.add(next);
+					}
+				}
+			}
+		}
 
 		return ans;
 	}
