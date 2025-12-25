@@ -186,9 +186,11 @@ public class Map implements Map2D, Serializable {
 		// get coordinates
 		int x = p.getX();
 		int y = p.getY();
+
 		int w = this.getWidth();
 		int h = this.getHeight();
 
+		// if pixel is out of bounds
 		if (x < 0 || x >= w || y < 0 || y >= h)
 			ans = false;
 
@@ -201,12 +203,7 @@ public class Map implements Map2D, Serializable {
 		if (p == null)
 			return false;
 
-		boolean ans = false;
-
-		if (this.getWidth() == p.getWidth() && this.getHeight() == p.getHeight())
-			ans = true;
-
-		return ans;
+		return (this.getWidth() == p.getWidth() && this.getHeight() == p.getHeight());
 	}
 
 	@Override
@@ -330,19 +327,26 @@ public class Map implements Map2D, Serializable {
 		double dx = x2 - x1;
 		double dy = y2 - y1;
 
-		// the bigger of them
+		// set steps for the longer distance
 		double steps = Math.max(Math.abs(dx), Math.abs(dy));
 
-		// increment for each step
+		// set increament for each step x \ y
 		double incX = dx / steps;
 		double incY = dy / steps;
 
+		// set current x & y
 		double currX = x1;
 		double currY = y1;
 
 		for (int i = 0; i <= steps; i++) {
-			this.setPixel((int) Math.round(currX), (int) Math.round(currY), color);
+			// round current x and y
+			int roundedCurrX = (int) Math.round(currX);
+			int roundedCurrY = (int) Math.round(currY);
 
+			// paint with given color the current pixel
+			this.setPixel(roundedCurrX, roundedCurrY, color);
+
+			// set current x and y to the next step
 			currX += incX;
 			currY += incY;
 		}
@@ -400,6 +404,12 @@ public class Map implements Map2D, Serializable {
 	/**
 	 * Fills this map with the new color (new_v) starting from p.
 	 * https://en.wikipedia.org/wiki/Flood_fill
+	 * 
+	 * @param xy     coordinate of starting point
+	 * @param new_v  new value (color) to set the right pixels
+	 * @param cyclic boolean value for map is cyclic or not
+	 * 
+	 * @return the number of cells updated on the map (including the source)
 	 */
 	public int fill(Pixel2D xy, int new_v, boolean cyclic) {
 		int ans = 0;
@@ -460,6 +470,13 @@ public class Map implements Map2D, Serializable {
 	/**
 	 * BFS like shortest the computation based on iterative raster implementation of
 	 * BFS, see: https://en.wikipedia.org/wiki/Breadth-first_search
+	 * 
+	 * @param p1       the source (starting) point
+	 * @param p2       the target (destination) point
+	 * @param obsColor the color representing obstacles
+	 * @param cyclic   boolean value for map is cyclic or not
+	 * 
+	 * @return the shortest path as an array of points from source to target
 	 */
 	public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
 		Pixel2D[] ans = null; // the result.
@@ -478,11 +495,11 @@ public class Map implements Map2D, Serializable {
 		}
 
 		Queue<Pixel2D> q = new LinkedList<>();
+		q.add(p1);
 
 		// parent[x][y] stores the pixel we came from to reach (x, y)
 		Pixel2D[][] parent = new Pixel2D[width][height];
 
-		q.add(p1);
 		// mark start as visited
 		parent[p1.getX()][p1.getY()] = p1;
 
@@ -522,6 +539,13 @@ public class Map implements Map2D, Serializable {
 	 * Computes a new map with the shortest path distance from the start point to
 	 * each entry in this map. Uses BFS algorithm to compute distances.
 	 * https://en.wikipedia.org/wiki/Breadth-first_search
+	 * 
+	 * @param start    the source (starting) point
+	 * @param obsColor the color representing obstacles
+	 * @param cyclic   boolean value for map is cyclic or not
+	 *
+	 * @return a new map with all the shortest path distances from the starting
+	 *         point to each entry in this map.
 	 */
 	public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
 		Map2D ans = null; // the result.
@@ -614,6 +638,10 @@ public class Map implements Map2D, Serializable {
 	/**
 	 * Reconstructs the path from p2 back to p1 using the parent map.
 	 * 
+	 * @param p1     The starting pixel.
+	 * @param p2     The ending pixel.
+	 * @param parent The parent map.
+	 * 
 	 * @return An array of Pixel2D representing the path from start to end.
 	 */
 	private Pixel2D[] reconstructPath(Pixel2D p1, Pixel2D p2, Pixel2D[][] parent) {
@@ -625,6 +653,8 @@ public class Map implements Map2D, Serializable {
 
 			// add to the front to keep start-to-end order
 			pathList.addFirst(curr);
+
+			// update curr to be his parent
 			curr = parent[curr.getX()][curr.getY()];
 		}
 
