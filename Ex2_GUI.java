@@ -152,9 +152,12 @@ public class Ex2_GUI {
     }
 
     public static void main(String[] a) {
-        String mapFile = "map.txt";
-        Map2D map = loadMap(mapFile);
-        drawMap(map);
+//        String mapFile = "map.txt";
+//        Map2D map = loadMap(mapFile);
+//        drawMap(map);
+
+        // main to implement my project for use
+        MainExample.main();
     }
 
     /// ///////////// Private functions ///////////////
